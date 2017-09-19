@@ -144,6 +144,11 @@ export type JsonRpcMethod = (this: JsonRpcMethodContext, ...params) => any
 
 export class JsonRpc {
 
+    /**
+     * @param namespace  Optional namespace to add to all methods.
+     */
+    constructor(public namespace?: string) {}
+
     public readonly methods: {
         [name: string]: {method: JsonRpcMethod, params: string[]},
     } = {}
@@ -154,9 +159,10 @@ export class JsonRpc {
      * @param method  Method implementation.
      */
     public register(name: string,  method: JsonRpcMethod) {
-        assert(!this.methods[name], 'method already exists')
+        const n = this.namespace ? `${ this.namespace }.${ name }` : name
+        assert(!this.methods[n], 'method already exists')
         const params = getParamNames(method)
-        this.methods[name] = {method, params}
+        this.methods[n] = {method, params}
     }
 
     public middleware = async (ctx: Koa.Context, next: () => Promise<any>) => {

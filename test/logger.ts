@@ -34,7 +34,7 @@ describe('logger', function() {
         }]
     })
 
-    const rpc = new JsonRpc()
+    const rpc = new JsonRpc('banana')
     app.use(requestLogger(logger))
     app.use(rpcLogger(logger))
     app.use(rpc.middleware)
@@ -73,23 +73,23 @@ describe('logger', function() {
     }
 
     it('should attach logger and uuid', async function() {
-        const rv = await rpcRequest('test')
+        const rv = await rpcRequest('banana.test')
         assert.equal(rv, true)
     })
 
     it('should log rpc requests', async function() {
-        await rpcRequest('log', ['Hello'])
+        await rpcRequest('banana.log', ['Hello'])
         const msgs = logStream.last(4)
         assert.equal(msgs[0].msg, '<-- POST /')
         assert.equal(msgs[1].foo, 'Hello')
-        assert.equal(msgs[2].rpc_req, 'log:2')
+        assert.equal(msgs[2].rpc_req, 'banana.log:2')
         assert.equal(msgs[3].msg, '--> POST / 200')
     })
 
     it('should log batch requests', async function() {
         await jsonRequest(opts, [
-            {id: 'one', jsonrpc: '2.0', method: 'test'},
-            {id: 'two', jsonrpc: '2.0', method: 'test'},
+            {id: 'one', jsonrpc: '2.0', method: 'banana.test'},
+            {id: 'two', jsonrpc: '2.0', method: 'banana.test'},
         ])
         const msgs = logStream.last(3)
         assert.equal(msgs[0].msg, 'rpc call')
@@ -98,7 +98,7 @@ describe('logger', function() {
     })
 
     it('should log rpc errors', async function() {
-        await jsonRequest(opts, {id: 'one', jsonrpc: 'fail', method: 'test'})
+        await jsonRequest(opts, {id: 'one', jsonrpc: 'fail', method: 'banana.test'})
         const msgs = logStream.last(3)
         assert.equal(msgs[0].msg, '<-- POST /')
         assert.equal(msgs[1].msg, 'Invalid Request: invalid rpc version')
