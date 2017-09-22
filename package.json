@@ -5,7 +5,8 @@
   "typings": "./lib/index",
   "scripts": {
     "test": "make ci-test",
-    "postinstall": "make lib"
+    "build": "make lib",
+    "postinstall": "ypib lib"
   },
   "engines": {
     "node": "^8"
@@ -13,21 +14,22 @@
   "dependencies": {
     "uuid": "^3.1.0",
     "verror": "^1.10.0",
+    "ypib": "git+https://github.com/jnordberg/ypib.git#9f083bfee7a220188f5be46513c499ce1fa8f9c8"
+  },
+  "devDependencies": {
     "@types/bunyan": "^1.8.2",
     "@types/koa": "^2.0.39",
     "@types/mocha": "^2.2.41",
     "@types/node": "^8.0.26",
     "@types/uuid": "^3.4.1",
     "@types/verror": "^1.10.1",
-    "typescript": "^2.5.0"
-  },
-  "devDependencies": {
     "bunyan": ">=1.8.12",
     "koa": ">=2.3.0",
     "mocha": "^3.5.0",
     "nsp": "^2.8.0",
     "nyc": "^11.1.0",
     "ts-node": "^3.3.0",
-    "tslint": "^5.7.0"
+    "tslint": "^5.7.0",
+    "typescript": "^2.5.0"
   }
 }
