@@ -144,14 +144,14 @@ export type JsonRpcMethod = (this: JsonRpcMethodContext, ...params) => any
 
 export class JsonRpc {
 
+    public readonly methods: {
+        [name: string]: {method: JsonRpcMethod, params: string[]},
+    } = {}
+
     /**
      * @param namespace  Optional namespace to add to all methods.
      */
     constructor(public namespace?: string) {}
-
-    public readonly methods: {
-        [name: string]: {method: JsonRpcMethod, params: string[]},
-    } = {}
 
     /**
      * Register a rpc method.
