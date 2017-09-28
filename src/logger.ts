@@ -17,7 +17,7 @@ import {JsonRpcRequest, JsonRpcResponse} from './jsonrpc'
 export function requestLogger(logger: bunyan, level = 'debug'): Koa.Middleware {
     return (ctx: Koa.Context, next) => {
         ctx['start_time'] = process.hrtime()
-        const uuid = ctx.request.get('X-Request-Id') || UUID()
+        const uuid = ctx.request.get('X-Amzn-Trace-Id') || ctx.request.get('X-Request-Id') || UUID()
         ctx['req_id'] = uuid
         ctx.response.set('X-Request-Id', uuid)
         const log = logger.child({
