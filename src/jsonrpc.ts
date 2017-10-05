@@ -139,7 +139,27 @@ export class JsonRpcRequest {
 
 }
 
-export interface JsonRpcMethodContext {ctx: Koa.Context, log: bunyan}
+export function rpcAssert(value: any, message?: string) {
+    if (!value) {
+        throw new JsonRpcError(400, message || 'Assertion failed')
+    }
+}
+
+export function rpcAssertEqual(actual: any, expected: any, message?: string) {
+    // tslint:disable-next-line:triple-equals
+    if (actual != expected) {
+        const info = {actual, expected}
+        throw new JsonRpcError(400, {info}, message || 'Assertion failed')
+    }
+}
+
+export interface JsonRpcMethodContext {
+    ctx: Koa.Context,
+    log: bunyan,
+    assert: typeof rpcAssert
+    assertEqual: typeof rpcAssertEqual
+}
+
 export type JsonRpcMethod = (this: JsonRpcMethodContext, ...params) => any
 
 export class JsonRpc {
@@ -240,7 +260,8 @@ export class JsonRpc {
         }
         const start = process.hrtime()
         try {
-            result = await handler.method.apply({log, ctx}, params)
+            const bind = {log, ctx, assert: rpcAssert, assertEqual: rpcAssertEqual}
+            result = await handler.method.apply(bind, params)
         } catch (error) {
             if (!(error instanceof JsonRpcError)) {
                 error = new JsonRpcError(JsonRpcErrorCode.InternalError, {cause: error}, 'Internal error')

@@ -43,6 +43,12 @@ describe('JsonRpc', function() {
         return {ip: this.ctx.request.ip, foo}
     })
 
+    rpc.register('assert', async function(foo: string) {
+        this.assert(true)
+        this.assertEqual(foo, 'bar', 'foobar')
+        return 'all good'
+    })
+
     async function send(body: string) {
         return new Promise((resolve, reject) => {
             const request = http.request({port, method: 'post'}, (response) => {
@@ -180,6 +186,13 @@ describe('JsonRpc', function() {
     it('should bind request context to rpc handler', async function() {
         const rv = await jsonRequest(opts, {"jsonrpc": "2.0", "method": "ctx", "params": ["baz"], "id": 2})
         assert.deepEqual(rv, { jsonrpc: '2.0', id: 2, result: {ip: '127.0.0.1', foo: 'baz'}})
+    })
+
+    it('should assert in ctx', async function() {
+        const rv1 = await jsonRequest(opts, {"jsonrpc": "2.0", "id": 1, "method": "assert", "params": {"foo": "bar"}})
+        assert.deepEqual(rv1, { jsonrpc: '2.0', id: 1, result: 'all good' })
+        const rv2 = await jsonRequest(opts, {"jsonrpc": "2.0", "id": 1, "method": "assert", "params": {"foo": "baz"}})
+        assert.deepEqual(rv2.error, { code: 400, data: { actual: 'baz', expected: 'bar' }, message: 'foobar' })
     })
 
 })
