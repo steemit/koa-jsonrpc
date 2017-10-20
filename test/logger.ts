@@ -82,7 +82,7 @@ describe('logger', function() {
         const msgs = logStream.last(4)
         assert.equal(msgs[0].msg, '<-- POST /')
         assert.equal(msgs[1].foo, 'Hello')
-        assert.equal(msgs[2].rpc_req, 'banana.log:2')
+        assert.deepEqual(msgs[2].rpc_req, {id: 2, method: 'banana.log'})
         assert.equal(msgs[3].msg, '--> POST / 200')
     })
 

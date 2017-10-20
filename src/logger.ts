@@ -42,7 +42,7 @@ export function requestLogger(logger: bunyan, level = 'debug'): Koa.Middleware {
 export function rpcLogger(logger: bunyan, level = 'debug'): Koa.Middleware {
     logger.addSerializers({
         rpc_req: (req: JsonRpcRequest) => {
-            return `${ req.method }:${ req.id || 'null' }`
+            return {id: req.id, method: req.method}
         }
     })
     return async (ctx: Koa.Context, next) => {
