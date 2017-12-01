@@ -9,18 +9,11 @@ import * as bunyan from 'bunyan'
 import * as Koa from 'koa'
 import {VError} from 'verror'
 
-import {readJson} from './utils'
+import {getParamNames, readJson, resolveParams} from './utils'
 
-// https://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically
-// tslint:disable-next-line
-const STRIP_COMMENTS = /(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|("(?:\\"|[^"\r\n])*"))|(\s*=[^,\)]*))/mg
-const ARGUMENT_NAMES = /([^\s,]+)/g
-function getParamNames(func) {
-  const fnStr = func.toString().replace(STRIP_COMMENTS, '')
-  const result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES)
-  return result || []
-}
-
+/**
+ * RPC specific error codes, application errors should not use these.
+ */
 export enum JsonRpcErrorCode {
     ParseError     = -32700,
     InvalidRequest = -32600,
@@ -39,22 +32,6 @@ function isValidId(id: JsonRpcId) {
 
 function isValidResponse(response: JsonRpcResponse) {
     return (response.id !== null && response.id !== undefined) || response.error !== undefined
-}
-
-function resolveParams(params: any[] | {[key: string]: any}, names: string[]) {
-    assert(typeof params === 'object', 'not an object or array')
-    if (!Array.isArray(params)) {
-        // resolve named arguments to positional
-        const rv: any[] = names.map(() => undefined)
-        for (const key of Object.keys(params)) {
-            const idx = names.indexOf(key)
-            assert(idx !== -1, `unknown param: ${ key }`)
-            rv[idx] = params[key]
-        }
-        return rv
-    } else {
-        return params
-    }
 }
 
 export class JsonRpcError extends VError {
@@ -156,6 +133,7 @@ export function rpcAssertEqual(actual: any, expected: any, message?: string) {
 export interface JsonRpcMethodContext {
     ctx: Koa.Context,
     log: bunyan,
+    request: JsonRpcRequest,
     assert: typeof rpcAssert
     assertEqual: typeof rpcAssertEqual
 }
@@ -178,7 +156,7 @@ export class JsonRpc {
      * @param name    Method name.
      * @param method  Method implementation.
      */
-    public register(name: string,  method: JsonRpcMethod) {
+    public register(name: string, method: JsonRpcMethod) {
         const n = this.namespace ? `${ this.namespace }.${ name }` : name
         assert(!this.methods[n], 'method already exists')
         const params = getParamNames(method)
@@ -254,13 +232,17 @@ export class JsonRpc {
         }
 
         let result: any
-        let log: bunyan | undefined
+        let log: any
         if (ctx['log']) {
             log = ctx['log'].child({rpc_req: request})
         }
         const start = process.hrtime()
         try {
-            const bind = {log, ctx, assert: rpcAssert, assertEqual: rpcAssertEqual}
+            const bind: JsonRpcMethodContext = {
+                assert: rpcAssert,
+                assertEqual: rpcAssertEqual,
+                ctx, log, request,
+            }
             result = await handler.method.apply(bind, params)
         } catch (error) {
             if (!(error instanceof JsonRpcError)) {
