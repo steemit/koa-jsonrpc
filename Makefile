@@ -7,8 +7,8 @@ SRC_FILES := $(shell find src -name '*.ts')
 all: lib
 
 lib: $(SRC_FILES) node_modules tsconfig.json
-	tsc -p tsconfig.json --outDir lib
-	touch lib
+	tsc -p tsconfig.json --outDir lib && \
+		touch lib
 
 .PHONY: coverage
 coverage: node_modules
