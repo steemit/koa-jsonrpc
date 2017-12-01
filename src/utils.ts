@@ -50,7 +50,7 @@ export async function jsonRequest(options: https.RequestOptions, data: any) {
         request.on('error', (cause) => {
             reject(new VError({cause, name: 'RequestError'}, 'Unable to send request'))
         })
-        request.on('response', async (response: https.IncomingMessage) => {
+        request.on('response', async (response: http.IncomingMessage) => {
             try {
                 resolve(await readJson(response))
             } catch (cause) {
