@@ -1,5 +1,5 @@
 {
-  "name": "@steemit/jsonrpc",
+  "name": "@steemit/koa-jsonrpc",
   "version": "1.0.0",
   "license": "MIT",
   "main": "./lib/index",
@@ -8,6 +8,9 @@
     "test": "make ci-test",
     "prepublish": "make lib"
   },
+  "files": [
+    "lib/*"
+  ],
   "engines": {
     "node": "^8"
   },

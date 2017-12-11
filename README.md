@@ -1,13 +1,13 @@
 
-@steemit/jsonrpc
-================
+@steemit/koa-jsonrpc
+====================
 
 Spec compliant JSON RPC Server middleware for Koa
 
 
 ```javascript
 const Koa = require('koa')
-const {JsonRpc} = require('@steemit/jsonrpc')
+const {JsonRpc} = require('@steemit/koa-jsonrpc')
 
 const rpc = new JsonRpc()
 rpc.register('my_method', async (foo, bar) => {
