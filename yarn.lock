@@ -2,6 +2,12 @@
 # yarn lockfile v1
 
 
+"@steemit/rpc-auth@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@steemit/rpc-auth/-/rpc-auth-1.0.2.tgz#7a76826a91698c262149a444ad068127120b8298"
+  dependencies:
+    dsteem "^0.8.5"
+
 "@types/accepts@*":
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/@types/accepts/-/accepts-1.3.3.tgz#6da8c6e3144566feec7ce2176828f1c47523f1ab"
