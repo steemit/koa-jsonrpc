@@ -52,11 +52,11 @@ describe('Auth', function() {
             jsonrpc: '2.0',
             id: 1,
             method: 'sudo',
-            params: {command: 'make me a sandwitch'},
+            params: {command: 'make me a sandwich'},
         }
         const signed = sign(req, 'foo', [key])
         const rv = await jsonRequest(opts, signed)
-        assert.deepEqual(rv, { jsonrpc: '2.0', id: 1, result: 'sudo make me a sandwitch' })
+        assert.deepEqual(rv, { jsonrpc: '2.0', id: 1, result: 'sudo make me a sandwich' })
     })
 
     it('rejects unsigned request', async function() {
@@ -65,7 +65,7 @@ describe('Auth', function() {
             jsonrpc: '2.0',
             id: 1,
             method: 'sudo',
-            params: {command: 'make me a sandwitch'},
+            params: {command: 'make me a sandwich'},
         }
         rv = await jsonRequest(opts, req)
         assert.deepEqual(rv, { jsonrpc: '2.0', id: 1, error: { code: -32602, message: 'Invalid params: unknown param: command' } })
@@ -80,11 +80,11 @@ describe('Auth', function() {
             jsonrpc: '2.0',
             id: 1,
             method: 'sudo',
-            params: {command: 'make me a sandwitch'},
+            params: {command: 'make me a sandwich'},
         }
         const signed = sign(req, 'foo', [key])
         const rv = await jsonRequest(opts, signed)
-        assert.deepEqual(rv, { jsonrpc: '2.0', id: 1, error: { code: 401, message: 'Unauthorized: Verification failed' } })
+        assert.deepEqual(rv, { jsonrpc: '2.0', id: 1, error: { code: 401, message: 'Unauthorized: Verification failed (Invalid signature)' } })
     })
 
     it('rejects wrong user', async function() {
@@ -93,7 +93,7 @@ describe('Auth', function() {
             jsonrpc: '2.0',
             id: 1,
             method: 'sudo',
-            params: {command: 'make me a sandwitch'},
+            params: {command: 'make me a sandwich'},
         }
         const signed = sign(req, 'foo2', [key])
         const rv = await jsonRequest(opts, signed)
