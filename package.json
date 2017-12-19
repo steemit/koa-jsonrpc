@@ -1,6 +1,6 @@
 {
   "name": "@steemit/koa-jsonrpc",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "main": "./lib/index",
   "typings": "./lib/index",
@@ -15,7 +15,8 @@
     "node": "^8"
   },
   "dependencies": {
-    "@steemit/rpc-auth": "^1.0.2",
+    "@steemit/rpc-auth": "^1.1.0",
+    "dsteem": "^0.8.6",
     "uuid": "^3.1.0",
     "verror": "^1.10.0"
   },
@@ -27,7 +28,6 @@
     "@types/uuid": "^3.4.1",
     "@types/verror": "^1.10.3",
     "bunyan": "^1.8.12",
-    "dsteem": "^0.8.5",
     "koa": "^2.4.1",
     "mocha": "^4.0.1",
     "nsp": "^3.1.0",

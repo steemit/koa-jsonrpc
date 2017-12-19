@@ -16,7 +16,7 @@ describe('Auth', function() {
     assert(isFinite(port), 'invalid test port')
 
     const app = new Koa()
-    const rpc = new JsonRpcAuth('https://testnet.steem.vc')
+    const rpc = new JsonRpcAuth('https://testnet.steem.vc', undefined, {addressPrefix: 'STX'})
     app.use(rpc.middleware)
 
     const sudoers = [
@@ -47,7 +47,7 @@ describe('Auth', function() {
     const opts = {port, protocol: 'http:', method: 'post'}
 
     it('verifies signed request', async function() {
-        const key = PrivateKey.fromLogin('foo', 'barman', 'posting')
+        const key = PrivateKey.fromLogin('foo', 'barman', 'posting').toString()
         const req: any = {
             jsonrpc: '2.0',
             id: 1,
@@ -75,7 +75,7 @@ describe('Auth', function() {
     })
 
     it('rejects invalid signature', async function() {
-        const key = PrivateKey.fromSeed('this aint no key ive ever heard of')
+        const key = PrivateKey.fromSeed('this aint no key ive ever heard of').toString()
         const req: any = {
             jsonrpc: '2.0',
             id: 1,
@@ -88,7 +88,7 @@ describe('Auth', function() {
     })
 
     it('rejects wrong user', async function() {
-        const key = PrivateKey.fromLogin('foo2', 'barman', 'posting')
+        const key = PrivateKey.fromLogin('foo2', 'barman', 'posting').toString()
         const req: any = {
             jsonrpc: '2.0',
             id: 1,
@@ -99,5 +99,19 @@ describe('Auth', function() {
         const rv = await jsonRequest(opts, signed)
         assert.deepEqual(rv, { jsonrpc: '2.0', id: 1, error: { code: 400, message: 'Nope' } })
     })
+
+    it('rejects bad signature', async function() {
+        const key = PrivateKey.fromSeed('lol').toString()
+        const req: any = {
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'sudo',
+            params: {command: 'make me a sandwich'},
+        }
+        const signed = sign(req, 'foo', [key])
+        const rv = await jsonRequest(opts, signed)
+        assert.deepEqual(rv, { jsonrpc: '2.0', id: 1, error: { code: 401, message: 'Unauthorized: Verification failed (Invalid signature)' } })
+    })
+
 
 })
