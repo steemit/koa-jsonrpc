@@ -6,9 +6,9 @@
 
 import {SignedJsonRpcRequest, validate as validateSignature, VerifyMessage} from '@steemit/rpc-auth'
 import * as assert from 'assert'
+import {Client, ClientOptions, PublicKey, Signature} from 'dsteem'
 import {RequestOptions} from 'https'
 import {parse as parseUrl} from 'url'
-import {Client, ClientOptions, PublicKey, Signature} from 'dsteem'
 
 import {JsonRpc, JsonRpcError, JsonRpcMethod, JsonRpcMethodContext} from './jsonrpc'
 import {getParamNames, jsonRequest, resolveParams} from './utils'
