@@ -45,13 +45,13 @@ export class JsonRpcAuth extends JsonRpc {
      }
 
     private makeHandler(method: JsonRpcAuthMethod): JsonRpcMethod {
-        const verifier = this.verifier
+        const self = this
         const paramNames = getParamNames(method)
         return async function(__signed: any) { // tslint:disable-line
             const req = this.request as SignedJsonRpcRequest
             let params: any
             try {
-                params = await validateSignature(req, verifier)
+                params = await validateSignature(req, self.verifier)
             } catch (cause) {
                 throw new JsonRpcError(401, {cause}, 'Unauthorized')
             }
