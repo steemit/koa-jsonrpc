@@ -6,8 +6,10 @@
 
 import {SignedJsonRpcRequest, validate as validateSignature, VerifyMessage} from '@steemit/rpc-auth'
 import * as assert from 'assert'
+import {Client, ClientOptions, PublicKey, Signature} from 'dsteem'
 import {RequestOptions} from 'https'
 import {parse as parseUrl} from 'url'
+
 import {JsonRpc, JsonRpcError, JsonRpcMethod, JsonRpcMethodContext} from './jsonrpc'
 import {getParamNames, jsonRequest, resolveParams} from './utils'
 
@@ -22,17 +24,15 @@ export type JsonRpcAuthMethod = (this: JsonRpcAuthMethodContext, ...params) => a
  */
 export class JsonRpcAuth extends JsonRpc {
 
-    private requestOptions: RequestOptions
-    private seqNo = 0
+    private client: Client
 
     /**
      * @param rpcNode    Address to steemd node used for signature verification.
      * @param namespace  Optional namespace to add to all methods.
      */
-    constructor(public rpcNode: string, namespace?: string) {
+    constructor(public rpcNode: string, namespace?: string, options?: ClientOptions) {
         super(namespace)
-        this.requestOptions = parseUrl(rpcNode)
-        this.requestOptions.method = 'post'
+        this.client = new Client(rpcNode, options)
     }
 
     /**
@@ -45,13 +45,13 @@ export class JsonRpcAuth extends JsonRpc {
      }
 
     private makeHandler(method: JsonRpcAuthMethod): JsonRpcMethod {
-        const verifier = this.verifier
+        const self = this
         const paramNames = getParamNames(method)
         return async function(__signed: any) { // tslint:disable-line
             const req = this.request as SignedJsonRpcRequest
             let params: any
             try {
-                params = await validateSignature(req, verifier)
+                params = await validateSignature(req, self.verifier)
             } catch (cause) {
                 throw new JsonRpcError(401, {cause}, 'Unauthorized')
             }
@@ -62,20 +62,37 @@ export class JsonRpcAuth extends JsonRpc {
 
     }
 
-    private verifier: VerifyMessage = async (message: Buffer, signatures: string[], account: string) => {
-        const payload = {
-            jsonrpc: '2.0',
-            method: 'call',
-            id: ++this.seqNo,
-            params: ['database_api', 'verify_signatures', [{
-                hash: message.toString('hex'),
-                signatures,
-                required_posting: [account],
-            }]]
+    private verifier: VerifyMessage = async (message: Buffer, signatures: string[], accountName: string) => {
+        assert.equal(message.byteLength, 32, 'Invalid message')
+        assert(accountName.length >= 3 && accountName.length <= 16, 'Invalid account name')
+
+        const [account] = await this.client.database.getAccounts([accountName])
+
+        if (!account) {
+            throw new Error('No such account')
         }
-        const response = await jsonRequest(this.requestOptions, payload)
-        assert(response.id === payload.id, 'rpc node response id mismatch')
-        if (response.result.valid !== true) {
+
+        if (account.posting.key_auths.length !== 1) {
+            throw new Error('Unsupported posting key configuration for account')
+        }
+
+        const [keyWif, keyWeight] = account.posting.key_auths[0]
+
+        if (account.posting.weight_threshold > keyWeight) {
+            throw new Error('Signing key not above weight threshold')
+        }
+
+        if (signatures.length !== 1) {
+            throw new Error('Multisig not supported')
+        }
+
+        const prefix = this.client.addressPrefix
+        const key = PublicKey.from(keyWif, prefix)
+        const signature = Signature.fromString(signatures[0])
+
+        const signKey = signature.recover(message, prefix)
+
+        if (key.toString() !== signKey.toString()) {
             throw new Error('Invalid signature')
         }
     }
