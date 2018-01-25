@@ -81,7 +81,7 @@ export class JsonRpcResponse {
         this.id = request ? request.id : null
         this.error = error
         this.request = request
-        this.result = result
+        this.result = result === undefined ? null : result
         this.time = time
     }
 
