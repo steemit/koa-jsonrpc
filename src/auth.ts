@@ -6,7 +6,7 @@
 
 import {SignedJsonRpcRequest, validate as validateSignature, VerifyMessage} from '@steemit/rpc-auth'
 import * as assert from 'assert'
-import {Client, ClientOptions, PublicKey, Signature} from 'dsteem'
+import {Authority, Client, ClientOptions, PublicKey, Signature} from 'dsteem'
 import {RequestOptions} from 'https'
 import {parse as parseUrl} from 'url'
 
@@ -25,6 +25,8 @@ export type JsonRpcAuthMethod = (this: JsonRpcAuthMethodContext, ...params) => a
 export class JsonRpcAuth extends JsonRpc {
 
     private client: Client
+    private cacheExpiry = 2 * 60 * 1000 // ms
+    private authCache = new Map<string, {auth: Authority, timestamp: number}>()
 
     /**
      * @param rpcNode    Address to steemd node used for signature verification.
@@ -66,19 +68,33 @@ export class JsonRpcAuth extends JsonRpc {
         assert.equal(message.byteLength, 32, 'Invalid message')
         assert(accountName.length >= 3 && accountName.length <= 16, 'Invalid account name')
 
-        const [account] = await this.client.database.getAccounts([accountName])
+        let postingAuth: Authority
 
-        if (!account) {
-            throw new Error('No such account')
+        const now = Date.now()
+        const cached = this.authCache.get(accountName)
+        if (cached && cached.timestamp + this.cacheExpiry > now) {
+            postingAuth = cached.auth
+        } else {
+            const [account] = await this.client.database.getAccounts([accountName])
+
+            if (!account) {
+                throw new Error('No such account')
+            }
+
+            postingAuth = account.posting
+
+            this.authCache.set(accountName, {
+                timestamp: now, auth: postingAuth
+            })
         }
 
-        if (account.posting.key_auths.length !== 1) {
+        if (postingAuth.key_auths.length !== 1) {
             throw new Error('Unsupported posting key configuration for account')
         }
 
-        const [keyWif, keyWeight] = account.posting.key_auths[0]
+        const [keyWif, keyWeight] = postingAuth.key_auths[0]
 
-        if (account.posting.weight_threshold > keyWeight) {
+        if (postingAuth.weight_threshold > keyWeight) {
             throw new Error('Signing key not above weight threshold')
         }
 
