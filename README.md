@@ -2,6 +2,8 @@
 @steemit/koa-jsonrpc
 ====================
 
+*Build status: [![CircleCI](https://circleci.com/gh/steemit/koa-jsonrpc.svg?style=svg)](https://circleci.com/gh/steemit/koa-jsonrpc)*
+
 Spec compliant JSON RPC Server middleware for Koa
 
 
