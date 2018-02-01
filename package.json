@@ -1,6 +1,6 @@
 {
   "name": "@steemit/koa-jsonrpc",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Spec compliant JSON-RPC 2.0 server middleware for Koa",
   "license": "MIT",
   "main": "./lib/index",
