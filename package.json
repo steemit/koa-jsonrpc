@@ -13,10 +13,10 @@
     "lib/*"
   ],
   "engines": {
-    "node": "^8"
+    "node": ">=8"
   },
   "dependencies": {
-    "@steemit/rpc-auth": "^1.1.0",
+    "@steemit/rpc-auth": "^1.1.1",
     "dsteem": "^0.8.6",
     "uuid": "^3.2.1",
     "verror": "^1.10.0"
