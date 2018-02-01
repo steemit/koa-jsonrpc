@@ -49,6 +49,11 @@ describe('JsonRpc', function() {
         return 'all good'
     })
 
+    let noResultCalls = 0
+    rpc.register('no_result', async () => {
+        noResultCalls++
+    })
+
     async function send(body: string) {
         return new Promise((resolve, reject) => {
             const request = http.request({port, method: 'post'}, (response) => {
@@ -159,6 +164,14 @@ describe('JsonRpc', function() {
             {"jsonrpc": "2.0", "method": "notify_hello", "params": [7]}
         ])
         assert.deepEqual(rv, undefined)
+    })
+
+    it('rpc call no result', async function() {
+        const rv = await jsonRequest(opts, {
+            "jsonrpc": "2.0", "method": "no_result", "id": 42
+        })
+        assert.deepEqual(rv, { jsonrpc: '2.0', id: 42, result: null })
+        assert.equal(noResultCalls, 1)
     })
 
     // extra
